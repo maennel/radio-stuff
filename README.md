@@ -2,6 +2,8 @@
 Random ramblings on radio stuff.
 
 This repository is intended to be a collection of radio related notes and learnings.
+- [Programming repeaters on the Yaesu FT5D(E)](transceivers/yaesu-ft5d/programming-yaesu-ft5d.md).
+
 
 ## Contributing
 If you have questions or doubts about the correctness of something that's written here, please either:
