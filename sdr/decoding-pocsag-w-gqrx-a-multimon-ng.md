@@ -2,19 +2,19 @@
 
 1. Run GQRX
 2. Activate "UDP" (configure network: UDP host: `localhost` & UDP port: `65535`)
-3. Tune in Narrow FW (BW ~22kHz) to one of (see ):
-  a. 147.300MHz
-  b. 147.325MHz
-  c. 147.375MHz
-  d. 147.400MHz
+3. Tune in Narrow FW (bandwidth: 12kHz) to one of:
+   1. 147.300MHz
+   2. 147.325MHz
+   3. 147.375MHz
+   4. 147.400MHz
 4. Run the multimon-ng decoder:
 ```bash
 nc -ul 127.0.0.1 65535 |sox -t raw -esigned-integer -b16 -r 48000 - -esigned-integer -b16 -r 22050 -t raw - | multimon-ng -t raw -a POCSAG512 -a POCSAG1200 -a POCSAG2400 --timestamp -
 ```
 
 In my region, I can also clearly hear POCSAG traffic on:
-- 145.700MHz
 - 145.650MHz
+- 145.700MHz
 
 ...which is in the middle of the 2m Ham band in Switzerland and therefore probably shouldn't be that way.
 
