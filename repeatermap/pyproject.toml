@@ -1,0 +1,8 @@
+[project]
+name = "repeater_mapper"
+version = "0.1.0"
+
+dependencies = [
+    "pyhamtools ~= 0.12.0",
+    "beautifulsoup4 ~= 4.14.0",
+]
