@@ -1,15 +1,20 @@
 import argparse
+import sys
 from itertools import chain
+from typing import Optional, TextIO
 
 from repeater_mapper import Status, Band, StandardRepeater
 from repeater_mapper.filters import RepeaterFilter
+from repeater_mapper.sources.json import JsonRepeaterReader
 from repeater_mapper.sources.uska import UskaRepeaterReader
 from repeater_mapper.presentations import JsonPresentation, YaesuFt5deAdms14CsvPresentation, \
     GoogleMapsCSVPresentation
 
 SOURCE_USKA = "uska"
+SOURCE_JSON = "json"
 SOURCE_ARGUMENTS_MAP = {
     SOURCE_USKA: UskaRepeaterReader,
+    SOURCE_JSON: JsonRepeaterReader,
 }
 
 FILTER_SEPARATOR = "-"
@@ -36,8 +41,9 @@ def _parse_args() -> argparse.Namespace:
         add_help=True,
     )
 
-    # Repeater sources: USKA, ...
+    # Repeater sources: USKA, JSON, ...
     parser.add_argument("--source", dest="sources", action="append", choices=SOURCE_ARGUMENTS_MAP.keys(), nargs="*")
+    parser.add_argument("--json-file", type=argparse.FileType("r"))
 
     # Filter: Status, Band, Callsign
     # TODO: Filter by callsign (regex?)
@@ -56,14 +62,20 @@ def _parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    args = _parse_args()
+    args: argparse.Namespace = _parse_args()
 
     # Read arguments
-    sources = [SOURCE_ARGUMENTS_MAP.get(s) for s in list(chain(*args.sources))]
-    if len(sources) == 0:
-        sources = [SOURCE_USKA]
+    source_selectors = list(chain(*args.sources)) if args.sources else []
+    if SOURCE_JSON in source_selectors and not args.json_file:
+        print("An existing json file needs to be provided if the json source is selected.", file=sys.stderr)
+        return
 
-    _filters: list[str] = list(chain(*args.filters))
+    sources = [SOURCE_ARGUMENTS_MAP.get(s) for s in source_selectors]
+    if len(sources) == 0:
+        sources = [SOURCE_ARGUMENTS_MAP.get(SOURCE_USKA)]
+    json_file: Optional[TextIO] = args.json_file
+
+    _filters: list[str] = list(chain(*args.filters)) if args.filters else []
     filter_builder = RepeaterFilter.Builder()
     for _filter in _filters:
         filter_type, filter_value = _filter.split(FILTER_SEPARATOR, maxsplit=1)
@@ -80,10 +92,10 @@ def main() -> None:
     # Run logic
     repeaters: list[StandardRepeater] = []
     for source in sources:
-        repeaters.extend(source().read())
+        if source == JsonRepeaterReader:
+            _repeaters = source(json_file).read()
+        else:
+            _repeaters = source().read()
+        repeaters.extend(_repeaters)
     filtered_repeaters = repeater_filter.filter(repeaters)
     presentation(filtered_repeaters).write(output)
-
-
-if __name__ == "__main__":
-    main()

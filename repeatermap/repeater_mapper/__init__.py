@@ -181,6 +181,28 @@ class StandardRepeater:
 
         return d
 
+    @classmethod
+    def from_dict(cls, d: dict) -> "StandardRepeater":
+        capabilities = []
+        if 'nfm' in d:
+            tone: Optional[int] = None
+            if 'tone' in d['nfm']:
+                tone = d['nfm']['tone']
+            capabilities.append(Nfm(ctcss_tone_tenth_of_hz=tone))
+        if 'c4fm' in d:
+            dg_id: Optional[DgId] = None
+            if len(d['c4fm']) > 0:
+                dg_id = DgId(tx=d['c4fm']['tx_dg_id'], rx=d['c4fm']['rx_dg_id'])
+            capabilities.append(C4FM(dg_id=dg_id))
+        return StandardRepeater(
+            qrg_tx_hz=d['qrg_tx_hz'],
+            qrg_rx_hz=d['qrg_rx_hz'],
+            call=d['call'],
+            locator=Locator(d['locator']),
+            capabilities=capabilities,
+            other_attributes=d['other_attributes'],
+            status=Status(d['status']),
+        )
 
 def parse_qrg_str(qrg_str: str) -> int:
     """
