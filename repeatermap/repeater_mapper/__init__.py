@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, member
 from functools import cached_property, cache
 from typing import Optional, Iterable
 
@@ -53,12 +53,29 @@ class Band(Enum):
     BAND_2M = 2
     BAND_70CM = 0.7
     BAND_23CM = 0.23
-    BAND_UNKNOWN = "?"
+    BAND_UNKNOWN = None
+
+    @staticmethod
+    def from_str(s: str) -> "Band":
+        """
+        Converts a string, such as "2m" or "70cm" to a Band object.
+
+        :param s: a string expressing the band.
+        :return: a Band object.
+        """
+        if not s.lower().startswith("band_"):
+            s = f"band_{s.lower()}"
+        try:
+            return Band[s.upper()]
+        except KeyError:
+            raise ValueError(f"{s.upper()} is not a valid Band name.")
+
+
 
     def __str__(self) -> str:
         if self == Band.BAND_UNKNOWN:
-            return self.value
-        elif self.value < 1.0:
+            return "???"
+        elif float(self.value) < 1.0:
             return f"{int(self.value * 100)}cm"
         else:
             return f"{self.value}m"
@@ -148,7 +165,7 @@ class StandardRepeater:
         d = {
             'qrg_tx_hz': self.qrg_tx_hz,
             'qrg_rx_hz': self.qrg_rx_hz,
-            'band': self.band,
+            'band': self.band.value,
             'call': self.call,
             'locator': self.locator.value,
             'other_attributes': self.other_attributes,

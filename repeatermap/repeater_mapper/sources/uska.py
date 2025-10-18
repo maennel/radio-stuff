@@ -9,9 +9,11 @@ from typing import Iterable, TextIO
 import requests
 from bs4 import BeautifulSoup
 
-from repeatermap.repeater_mapper import Locator, parse_qrg_str, StandardRepeater, RepeaterCapability, Nfm, C4FM, \
-    EchoLink, Status, Band
-from repeatermap.repeater_mapper.common import open_urn, GoogleMapsCSVPresentation
+from repeater_mapper import Locator, parse_qrg_str, StandardRepeater, RepeaterCapability, Nfm, C4FM, \
+    EchoLink, Status
+from repeater_mapper.common import open_urn, AbstractRepeaterReader
+
+USKA_REPEATER_MAP_URL = "https://uska.ch/hb-repeater-voice-list/"
 
 
 class UskaStatus(Enum):
@@ -81,6 +83,9 @@ class Parser:
             reader = csv.DictReader(csvfile)
 
             for row in reader:
+                # USKA's repeater table includes an empty line following the header.
+                if all([v == "" for v in row.values()]):
+                    continue
                 try:
                     qrg_tx_hz = parse_qrg_str(row['QRG TX'])
                     qrg_rx_hz = parse_qrg_str(row['QRG RX'])
@@ -96,8 +101,7 @@ class Parser:
                         status=UskaStatus(int(row["Status"]))
                     )
                 except ValueError as e:
-                    print(f"Could not parse {row}: {e}")
-                    print("Skipping...")
+                    print(f"Could not parse {row}: {e}.\nSkipping...", file=sys.stderr)
 
 
 class Converter:
@@ -139,23 +143,12 @@ class Converter:
             _capabilities.append(EchoLink(node=_echo_link.group('node')))
         return _capabilities
 
+class UskaRepeaterReader(AbstractRepeaterReader):
+    def __init__(self, data_source: str = USKA_REPEATER_MAP_URL):
+        self._converter = Converter()
+        self._parser = Parser(data_source)
 
-
-
-def main(data_source: str) -> None:
-    converter = Converter()
-    uska_repeaters = Parser(data_source).parse()
-    std_repeaters = [converter.convert(r) for r in uska_repeaters]
-
-    for band in [Band.BAND_2M, Band.BAND_70CM]:
-        band_repeaters = filter(lambda r: r.status == Status.QRV and r.band == band, std_repeaters)
-        presentation = GoogleMapsCSVPresentation(band_repeaters)
-        print(f"### Repeaters on {band} ###")
-        presentation.write(sys.stdout)
-
-    # TODO: Create Google Map with all repeaters.
-    # TODO: Store current list in machine parseable format.
-
-if __name__ == "__main__":
-    # main("../HB Repeater-Voice List.csv")
-    main("https://uska.ch/hb-repeater-voice-list/")
+    def read(self) -> Iterable[StandardRepeater]:
+        uska_repeaters = self._parser.parse()
+        for r in uska_repeaters:
+            yield self._converter.convert(r)

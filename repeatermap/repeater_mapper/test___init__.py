@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from repeatermap.repeater_mapper import LatLon, Locator, StandardRepeater, Nfm, Status, C4FM, DgId
+from repeater_mapper import LatLon, Locator, StandardRepeater, Nfm, Status, C4FM, DgId
 
 
 class TestLatLon(TestCase):
@@ -29,7 +29,7 @@ class TestAsDict(TestCase):
         self.assertDictEqual(d, {
             'qrg_tx_hz': 145650000,
             'qrg_rx_hz': 145050000,
-            'band': '2m',
+            'band': 2,
             'call': 'HB0TEST',
             'locator': 'JJ00AA',
             'other_attributes': {},
@@ -51,7 +51,7 @@ class TestAsDict(TestCase):
         self.assertDictEqual(d, {
             'qrg_tx_hz': 145650000,
             'qrg_rx_hz': 145050000,
-            'band': '2m',
+            'band': 2,
             'call': 'HB0TEST',
             'locator': 'JJ00AA',
             'status': 1,
@@ -60,8 +60,8 @@ class TestAsDict(TestCase):
 
     def test_as_dict_with_multiple_nfm(self):
         r = StandardRepeater(
-            qrg_tx_hz=145650000,
-            qrg_rx_hz=145050000,
+            qrg_tx_hz=145_650_000,
+            qrg_rx_hz=145_050_000,
             call="HB0TEST",
             locator=LatLon(0.0, 0.0).as_locator(),
             capabilities=[
@@ -73,9 +73,9 @@ class TestAsDict(TestCase):
         )
         d = r.as_dict()
         self.assertDictEqual(d, {
-            'qrg_tx_hz': 145650000,
-            'qrg_rx_hz': 145050000,
-            'band': '2m',
+            'qrg_tx_hz': 145_650_000,
+            'qrg_rx_hz': 145_050_000,
+            'band': 2,
             'call': 'HB0TEST',
             'locator': 'JJ00AA',
             'other_attributes': {},
@@ -85,8 +85,8 @@ class TestAsDict(TestCase):
 
     def test_as_dict_with_c4fm(self):
         r = StandardRepeater(
-            qrg_tx_hz=145650000,
-            qrg_rx_hz=145050000,
+            qrg_tx_hz=145_650_000,
+            qrg_rx_hz=145_050_000,
             call="HB0TEST",
             locator=LatLon(0.0, 0.0).as_locator(),
             capabilities=[
@@ -97,9 +97,9 @@ class TestAsDict(TestCase):
         )
         d = r.as_dict()
         self.assertDictEqual(d, {
-            'qrg_tx_hz': 145650000,
-            'qrg_rx_hz': 145050000,
-            'band': '2m',
+            'qrg_tx_hz': 145_650_000,
+            'qrg_rx_hz': 145_050_000,
+            'band': 2,
             'call': 'HB0TEST',
             'locator': 'JJ00AA',
             'other_attributes': {},
