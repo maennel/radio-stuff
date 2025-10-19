@@ -5,15 +5,18 @@ from typing import Optional, TextIO
 
 from repeater_mapper import Status, Band, StandardRepeater
 from repeater_mapper.filters import RepeaterFilter
-from repeater_mapper.sources.json import JsonRepeaterReader
+from repeater_mapper.sources.json_source import JsonRepeaterReader
+from repeater_mapper.sources.radioemetteursfrancais import RefRepeaterReader
 from repeater_mapper.sources.uska import UskaRepeaterReader
 from repeater_mapper.presentations import JsonPresentation, YaesuFt5deAdms14CsvPresentation, \
     GoogleMapsCSVPresentation
 
 SOURCE_USKA = "uska"
+SOURCE_REF = "radio-emetteurs-francais"
 SOURCE_JSON = "json"
 SOURCE_ARGUMENTS_MAP = {
     SOURCE_USKA: UskaRepeaterReader,
+    SOURCE_REF: RefRepeaterReader,
     SOURCE_JSON: JsonRepeaterReader,
 }
 

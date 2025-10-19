@@ -150,7 +150,7 @@ class StandardRepeater:
         try:
             b = freq_to_band(int(self.qrg_tx_hz / 1000))['band']
             return Band(b)
-        except KeyError:
+        except ValueError:
             return Band.BAND_UNKNOWN
 
     @cached_property
