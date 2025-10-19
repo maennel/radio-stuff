@@ -73,7 +73,7 @@ class UskaWebRepeaterTableReader:
 
 
 class Parser:
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         self._filename = filename
         self._web_repeater_table_reader = UskaWebRepeaterTableReader()
 

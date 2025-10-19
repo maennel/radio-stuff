@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from enum import Enum, member
+from enum import Enum
 from functools import cached_property, cache
 from typing import Optional, Iterable
 
-from pyhamtools.frequency import freq_to_band
-from pyhamtools.locator import locator_to_latlong, latlong_to_locator
+from repeater_mapper.utils.frequency import freq_to_band
+from repeater_mapper.utils.locator import locator_to_latlong, latlong_to_locator
 
 
 @dataclass
