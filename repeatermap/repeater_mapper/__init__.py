@@ -149,6 +149,9 @@ class StandardRepeater:
     def band(self) -> Band:
         try:
             b = freq_to_band(int(self.qrg_tx_hz / 1000))['band']
+            c = freq_to_band(int(self.qrg_rx_hz / 1000))['band']
+            if b != c:
+                return Band.BAND_UNKNOWN
             return Band(b)
         except ValueError:
             return Band.BAND_UNKNOWN

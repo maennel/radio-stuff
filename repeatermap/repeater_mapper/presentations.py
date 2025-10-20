@@ -40,7 +40,60 @@ class GoogleMapsCSVPresentation(RepeaterPresentation):
 
 
 class YaesuFt5deAdms14CsvPresentation(RepeaterPresentation):
-    _FIELD_NAMES = [
+    _ACCEPTED_TONE_FREQS: list[int] = [
+        670,
+        693,
+        719,
+        744,
+        770,
+        797,
+        825,
+        854,
+        885,
+        915,
+        948,
+        974,
+        1000,
+        1035,
+        1072,
+        1109,
+        1148,
+        1188,
+        1230,
+        1273,
+        1318,
+        1365,
+        1413,
+        1462,
+        1500,
+        1514,
+        1567,
+        1598,
+        1622,
+        1655,
+        1679,
+        1713,
+        1738,
+        1773,
+        1799,
+        1835,
+        1862,
+        1899,
+        1928,
+        1966,
+        1995,
+        2035,
+        2065,
+        2107,
+        2181,
+        2257,
+        2291,
+        2336,
+        2418,
+        2503,
+        2541,
+    ]
+    _FIELD_NAMES: list[str] = [
         "Channel No",
         "Priority CH",
         "Rx Freq",
@@ -112,8 +165,8 @@ class YaesuFt5deAdms14CsvPresentation(RepeaterPresentation):
             row = self._get_padding_row(counter)
             self._writer.writerow(row)
 
-    @staticmethod
-    def _convert_to_csv_row(i: int, r: StandardRepeater) -> dict[str, str | int]:
+
+    def _convert_to_csv_row(self, i: int, r: StandardRepeater) -> dict[str, str | int]:
         freq_offset = r.qrg_tx_hz - r.qrg_rx_hz
         if freq_offset == 0:
             offset_direction = "OFF"
@@ -129,6 +182,17 @@ class YaesuFt5deAdms14CsvPresentation(RepeaterPresentation):
         else: #    if r.nfm and r.c4fm:
             mode_switching = "AMS"  # Automated Mode Switch
 
+        if r.nfm and r.nfm.ctcss_tone_tenth_of_hz:
+            tone_mode:str = "TONE"
+            ctcss_freq: int = r.nfm.ctcss_tone_tenth_of_hz
+            if ctcss_freq not in self._ACCEPTED_TONE_FREQS:
+                diffs = [abs(r.nfm.ctcss_tone_tenth_of_hz - t) for t in self._ACCEPTED_TONE_FREQS]
+                index = diffs.index(min(diffs))
+                ctcss_freq = self._ACCEPTED_TONE_FREQS[index]
+        else:
+            tone_mode = "OFF"
+            ctcss_freq = self._ACCEPTED_TONE_FREQS[0]
+
         name_long = f"{r.call.replace("HB9", "", 1)} {r.other_attributes.get('qth', '???').translate(CHAR_TRANSLATION_TABLE)}"
         return {
             "Channel No": i,
@@ -142,8 +206,8 @@ class YaesuFt5deAdms14CsvPresentation(RepeaterPresentation):
             "DIG/ANALOG": mode_switching,
             "TAG": "ON",
             "Name": name_long[:16].rstrip(" /.,-"),
-            "Tone Mode": "TONE" if r.nfm and r.nfm.ctcss_tone_tenth_of_hz else "OFF",
-            "CTCSS Freq": f"{r.nfm.ctcss_tone_tenth_of_hz / 10} Hz" if r.nfm and r.nfm.ctcss_tone_tenth_of_hz else "67.0 Hz",
+            "Tone Mode": tone_mode,
+            "CTCSS Freq": f"{ctcss_freq / 10} Hz",
             "DCS Code": "023",
             "DCS Polarity": "RX Normal TX Normal",
             "User CTCSS": "1600 Hz",
