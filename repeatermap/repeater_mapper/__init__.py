@@ -1,8 +1,11 @@
+import json
 import re
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property, cache
 from typing import Optional, Iterable
+
+from geopy.distance import geodesic
 
 from repeater_mapper.utils.frequency import freq_to_band
 from repeater_mapper.utils.locator import locator_to_latlong, latlong_to_locator
@@ -32,6 +35,10 @@ class LatLon:
     @cache
     def as_locator(self) -> "Locator":
         return Locator(latlong_to_locator(self.lat, self.lon))
+
+    def distance_to(self, other: "LatLon") -> int:
+        """Computes the distance in meters between two coordinates in meters."""
+        return geodesic((self.lat, self.lon), (other.lat, other.lon)).m
 
     def __str__(self) -> str:
         return f"{self.lat},{self.lon}"
@@ -70,8 +77,6 @@ class Band(Enum):
         except KeyError:
             raise ValueError(f"{s.upper()} is not a valid Band name.")
 
-
-
     def __str__(self) -> str:
         if self == Band.BAND_UNKNOWN:
             return "???"
@@ -82,6 +87,43 @@ class Band(Enum):
 
     def __hash__(self) -> int:
         return hash(str(self))
+
+
+@dataclass
+class Area:
+    center: LatLon
+    radius_m: int
+
+    _SEPARATOR = "-"
+    _RADIUS_RE = re.compile(r"^(?P<value>[0-9]+)(?P<unit>k?m)$")
+
+    @classmethod
+    def from_str(cls, s: str) -> "Area":
+        locator, radius_s = s.split(Area._SEPARATOR, maxsplit=1)
+        if not (locator and radius_s):
+            raise ValueError(f"{s} is not a valid Area expression.")
+        return Area.from_locator_radius(Locator(locator), radius_s)
+
+    @staticmethod
+    def from_locator_radius(locator: Locator, radius_s: str) -> "Area":
+        m = Area._RADIUS_RE.match(radius_s)
+        if not m:
+            raise ValueError("Could not parse radius value.")
+
+        if m.group("unit") == "km":
+            radius_m = int(m.group("value")) * 1000
+        else:
+            radius_m = int(m.group("value"))
+        return Area(center=LatLon(*locator_to_latlong(locator=locator.value)), radius_m=radius_m)
+
+    def __str__(self) -> str:
+        return f"{latlong_to_locator(latitude=self.center.lat, longitude=self.center.lon)}{Area._SEPARATOR}{self.radius_m}m"
+
+    def is_locator_within(self, locator: Locator) -> bool:
+        return self.is_latlon_within(locator.as_latlon())
+
+    def is_latlon_within(self, latlon: LatLon) -> bool:
+        return self.center.distance_to(latlon) <= self.radius_m
 
 
 @dataclass
@@ -206,6 +248,10 @@ class StandardRepeater:
             other_attributes=d['other_attributes'],
             status=Status(d['status']),
         )
+
+    def __hash__(self) -> int:
+        return hash(json.dumps(self.as_dict()))
+
 
 def parse_qrg_str(qrg_str: str) -> int:
     """

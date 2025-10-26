@@ -19,8 +19,9 @@ Several sources can be combined.
 
 ## Filters
 
-From all repeaters, ingested from the selected sources, you can filter them for the following criteria using the `--filter` argument:
+From all repeaters, ingested from the selected sources, you can filter them for the following criteria using the `--filter` and the `--location-filter` argument:
 
+### Filtering for pre-defied criteria
 | Criterion         | Available options                                 |
 |-------------------|---------------------------------------------------|
 | Band (`band`)     | - `10m`<br />- `6m`<br />- `2m`<br />- `70cm`<br />- `23cm` |
@@ -30,6 +31,12 @@ Filters from the same category are combined with a boolean OR.
 Filters across different categories are combined with a boolean AND.
 
 I.e. `band-2m band-70 status-qrv`, which is the equivalent of `(band-2m OR band-70cm) AND status-qrv`
+
+### Filtering repeaters by area
+You can pass in one or several areas. 
+If set, only repeaters withing these areas will be reduced.
+
+E.g. `jn34tu-20km`-
 
 ## Presentations
 

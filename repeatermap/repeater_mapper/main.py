@@ -3,7 +3,7 @@ import sys
 from itertools import chain
 from typing import Optional, TextIO
 
-from repeater_mapper import Status, Band, StandardRepeater
+from repeater_mapper import Status, Band, StandardRepeater, Area
 from repeater_mapper.filters import RepeaterFilter
 from repeater_mapper.sources.json_source import JsonRepeaterReader
 from repeater_mapper.sources.radioemetteursfrancais import RefRepeaterReader
@@ -53,6 +53,7 @@ def _parse_args() -> argparse.Namespace:
     choices = [f"{arg_type}{FILTER_SEPARATOR}{arg_value}" for arg_type, arg_values in FILTER_ARGUMENTS_MAP.items() for
                arg_value in arg_values]
     parser.add_argument("--filter", dest="filters", action="append", choices=choices, nargs="*")
+    parser.add_argument("--area-filter", dest="area_filters", action="append", nargs="*", help="One or more areas within which repeaters must be located, expressed as '<locator>-<radius>m'    .")
 
     # Presentation formats: JSON, Yaesu FT5D, Google Maps
     parser.add_argument("--presentation", action="store", choices=PRESENTATION_ARGUMENTS_MAP.keys(),
@@ -79,6 +80,7 @@ def main() -> None:
     json_file: Optional[TextIO] = args.json_file
 
     _filters: list[str] = list(chain(*args.filters)) if args.filters else []
+    _area_filters: list[str] = list(chain(*args.area_filters)) if args.area_filters else []
     filter_builder = RepeaterFilter.Builder()
     for _filter in _filters:
         filter_type, filter_value = _filter.split(FILTER_SEPARATOR, maxsplit=1)
@@ -86,6 +88,8 @@ def main() -> None:
             filter_builder.add_band(Band.from_str(filter_value))
         elif filter_type == FILTER_STATUS:
             filter_builder.add_status(Status[filter_value.upper()])
+    for _area_filter in _area_filters:
+        filter_builder.add_area(Area.from_str(_area_filter))
     repeater_filter = filter_builder.build()
 
     presentation = PRESENTATION_ARGUMENTS_MAP.get(args.presentation)
