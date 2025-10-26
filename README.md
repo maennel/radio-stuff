@@ -5,7 +5,7 @@ This repository is intended to be a collection of radio related notes and learni
 - [Programming repeaters on the Yaesu FT5D(E)](transceivers/yaesu-ft5d/programming-yaesu-ft5d.md)
 - [Decoding APRS using GQRX and multimon-ng](sdr/decoding-aprs-w-gqrx-a-multimon-ng.md)
 - [Decoding POCSAG using GQRX and multimon-ng](sdr/decoding-pocsag-w-gqrx-a-multimon-ng.md)
-- A [map of HB repeaters](https://www.google.com/maps/d/u/0/edit?mid=1kP21dw7prFFAef9o4TiDAVW2FWuGyDA&usp=sharing), created with code under the [repeatermap](repeatermap/) folder. 
+- A [parser and mapping software](/radio-stuff/repeatermap/README.md) for repeaters, which allows you to e.g. create [Google Maps](https://www.google.com/maps/d/u/0/edit?mid=1kP21dw7prFFAef9o4TiDAVW2FWuGyDA&usp=sharing) or progam your handheld radio. 
 
 ## Contributing
 If you have questions or doubts about the correctness of something that's written here, please either:
