@@ -176,6 +176,16 @@ class DMR(RepeaterCapability):
 class DStar(RepeaterCapability):
     pass
 
+@dataclass
+class DCS(RepeaterCapability):
+    """
+    Digital Coded Squelch
+    """
+    code: int
+    is_inverted: bool
+
+    def as_zero_padded_string(self) -> str:
+        return f'{self.code:03}'
 
 @dataclass
 class StandardRepeater:
@@ -206,7 +216,11 @@ class StandardRepeater:
     def c4fm(self) -> Optional[C4FM]:
         return next(filter(lambda c: isinstance(c, C4FM), self.capabilities), None)
 
-    def as_dict(self) -> dict[str, str | int | bool | dict[str, Optional[str | int]]]:
+    @cached_property
+    def dcs(self) -> Optional[DCS]:
+        return next(filter(lambda c: isinstance(c, DCS), self.capabilities), None)
+
+    def as_dict(self) -> dict:
         d = {
             'qrg_tx_hz': self.qrg_tx_hz,
             'qrg_rx_hz': self.qrg_rx_hz,
@@ -223,6 +237,11 @@ class StandardRepeater:
                 'tx_dg_id': self.c4fm.dg_id.tx,
                 'rx_dg_id': self.c4fm.dg_id.rx,
             } if self.c4fm.dg_id else {}
+        if self.dcs:
+            d['dcs'] = {
+                "code": self.dcs.code,
+                "is_inverted": self.dcs.is_inverted,
+            }
 
         return d
 
@@ -239,6 +258,8 @@ class StandardRepeater:
             if len(d['c4fm']) > 0:
                 dg_id = DgId(tx=d['c4fm']['tx_dg_id'], rx=d['c4fm']['rx_dg_id'])
             capabilities.append(C4FM(dg_id=dg_id))
+        if 'dcs' in d:
+            capabilities.append(DCS(**d['dcs']))
         return StandardRepeater(
             qrg_tx_hz=d['qrg_tx_hz'],
             qrg_rx_hz=d['qrg_rx_hz'],

@@ -182,16 +182,22 @@ class YaesuFt5deAdms14CsvPresentation(RepeaterPresentation):
         else: #    if r.nfm and r.c4fm:
             mode_switching = "AMS"  # Automated Mode Switch
 
+        tone_mode = "OFF"
+        ctcss_freq = self._ACCEPTED_TONE_FREQS[0]
+        dcs_code = "023"
+        dcs_polarity = "RX Normal TX Normal"
+
         if r.nfm and r.nfm.ctcss_tone_tenth_of_hz:
-            tone_mode:str = "TONE"
+            tone_mode: str = "TONE"
             ctcss_freq: int = r.nfm.ctcss_tone_tenth_of_hz
             if ctcss_freq not in self._ACCEPTED_TONE_FREQS:
                 diffs = [abs(r.nfm.ctcss_tone_tenth_of_hz - t) for t in self._ACCEPTED_TONE_FREQS]
                 index = diffs.index(min(diffs))
                 ctcss_freq = self._ACCEPTED_TONE_FREQS[index]
-        else:
-            tone_mode = "OFF"
-            ctcss_freq = self._ACCEPTED_TONE_FREQS[0]
+        elif r.dcs:
+            tone_mode = "DCS"
+            dcs_code = r.dcs.as_zero_padded_string()
+            dcs_polarity = "RX Invert TX Invert" if r.dcs.is_inverted else "RX Normal TX Normal"
 
         name_long = f"{r.call.replace("HB9", "", 1)} {r.other_attributes.get('qth', '???').translate(CHAR_TRANSLATION_TABLE)}"
         return {
@@ -208,8 +214,8 @@ class YaesuFt5deAdms14CsvPresentation(RepeaterPresentation):
             "Name": name_long[:16].rstrip(" /.,-"),
             "Tone Mode": tone_mode,
             "CTCSS Freq": f"{ctcss_freq / 10} Hz",
-            "DCS Code": "023",
-            "DCS Polarity": "RX Normal TX Normal",
+            "DCS Code": dcs_code,
+            "DCS Polarity": dcs_polarity,
             "User CTCSS": "1600 Hz",
             "RX DG-ID": "RX 00",
             "TX DG-ID": "TX 00",

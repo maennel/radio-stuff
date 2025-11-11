@@ -10,7 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from repeater_mapper import Locator, parse_qrg_str, StandardRepeater, RepeaterCapability, Nfm, C4FM, \
-    EchoLink, Status
+    EchoLink, Status, DCS
 from repeater_mapper.common import open_urn, AbstractRepeaterReader
 
 USKA_REPEATER_MAP_URL = "https://uska.ch/hb-repeater-voice-list/"
@@ -109,6 +109,7 @@ class Converter:
     _CTCSS_TONE = re.compile('T(?P<freq>[0-9]{2,3}.[0-9])')
     _C4FM = re.compile('C4(?:FM)?')
     _ECHO_LINK = re.compile('EL#?(?P<node>[0-9]{5,6})')
+    _DCS = re.compile('DCS(?P<code>[0-9]{3})(?P<sign>[A-Z]?)')
 
     def convert(self, repeater: UskaRepeater) -> StandardRepeater:
         return StandardRepeater(
@@ -132,6 +133,7 @@ class Converter:
         _ctcss = self._CTCSS_TONE.search(remarks)
         _c4fm = self._C4FM.search(remarks)
         _echo_link = self._ECHO_LINK.search(remarks)
+        _dcs_code = self._DCS.search(remarks)
         if _nfm:
             if _ctcss:
                 _capabilities.append(Nfm(ctcss_tone_tenth_of_hz=int(float(_ctcss.group("freq")) * 10)))
@@ -141,6 +143,11 @@ class Converter:
             _capabilities.append(C4FM(dg_id=None))
         if _echo_link:
             _capabilities.append(EchoLink(node=_echo_link.group('node')))
+        if _dcs_code:
+            code = int(_dcs_code.group('code'))
+            sign = _dcs_code.group('sign')
+            _capabilities.append(DCS(code=code, is_inverted=sign=='I'))
+
         return _capabilities
 
 class UskaRepeaterReader(AbstractRepeaterReader):
